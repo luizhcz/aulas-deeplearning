@@ -1,32 +1,27 @@
 from __future__ import annotations
 
-from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from langchain_core.tools import tool
+from datetime import datetime
+import pytz
 
 from shared.contracts.http import AgentContext
 from agents.base.contracts import AgentSpec
 from agents.base.structured_agent import StructuredAgent
 
-
 class TimeByZoneInput(BaseModel):
-    message: str = Field(..., description="Mensagem do usuário. Ex: 'Como está o tempo no brasil'.")
-
+    timezone: str
 
 class TimeByZoneOutput(BaseModel):
-    zone: str = Field(..., description="Timezone IANA (ex: America/Sao_Paulo)")
-    time: str = Field(..., description="Horário atual nessa timezone em ISO 8601 (com offset)")
-
+    timezone: str
+    now: str
 
 @tool
-def get_time_by_zone(zone: str) -> dict:
-    """Retorna o horário atual em uma timezone IANA. Ex: America/Sao_Paulo."""
-    from datetime import datetime
-    from zoneinfo import ZoneInfo
-
-    now = datetime.now(ZoneInfo(zone))
-    return {"zone": zone, "time": now.isoformat()}
-
+def get_time_by_zone(timezone: str) -> dict:
+    """Retorna o horário atual na timezone informada (IANA)."""
+    tz = pytz.timezone(timezone)
+    now = datetime.now(tz).isoformat()
+    return {"timezone": timezone, "now": now}
 
 class TimeByZoneAgent(StructuredAgent):
     @classmethod
@@ -34,7 +29,7 @@ class TimeByZoneAgent(StructuredAgent):
         return AgentSpec(
             name="time_by_zone",
             version="1.0.0",
-            description="Extrai timezone via LLM e usa tool get_time_by_zone para retornar a hora.",
+            description="Retorna o horário atual em uma timezone.",
             input_model=TimeByZoneInput,
             output_model=TimeByZoneOutput,
             timeout_s=6.0,
@@ -45,13 +40,7 @@ class TimeByZoneAgent(StructuredAgent):
         return [get_time_by_zone]
 
     def user_message(self, inp: TimeByZoneInput, ctx: AgentContext) -> str:
-        # Aqui a LLM deve inferir a timezone e chamar a tool.
-        # Regra do seu exemplo: Brasil => America/Sao_Paulo
         return (
-            "Você é um agente que responde hora atual por timezone.\n"
-            "1) Identifique a timezone IANA correta a partir da mensagem do usuário.\n"
-            "   - Se mencionar Brasil/Brazil, use America/Sao_Paulo.\n"
-            "   - Se não for possível inferir, use UTC.\n"
-            "2) Chame a ferramenta get_time_by_zone(zone) e retorne o resultado.\n\n"
-            f"Mensagem do usuário: {inp.message}"
+            "Use a ferramenta get_time_by_zone para obter o horário atual.\n"
+            f"timezone={inp.timezone}"
         )

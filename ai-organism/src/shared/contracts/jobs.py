@@ -1,18 +1,10 @@
 from __future__ import annotations
-from typing import Any, Dict, Optional, Literal
+from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field
 
-JobStatus = Literal["QUEUED", "RUNNING", "SUCCEEDED", "FAILED"]
-
-class JobSubmitResponse(BaseModel):
-    accepted: bool = True
-    job_id: str
-    meta: Dict[str, Any] = Field(default_factory=dict)
-
-class JobStatusResponse(BaseModel):
-    job_id: str
-    status: JobStatus
-    ok: bool
-    output: Optional[Dict[str, Any]] = None
-    error: Optional[Dict[str, Any]] = None
-    meta: Dict[str, Any] = Field(default_factory=dict)
+class Job(BaseModel):
+    id: str
+    type: str
+    payload: Dict[str, Any] = Field(default_factory=dict)
+    status: str = "PENDING"
+    created_at: Optional[float] = None

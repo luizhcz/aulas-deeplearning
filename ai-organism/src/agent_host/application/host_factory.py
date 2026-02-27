@@ -1,6 +1,6 @@
 from __future__ import annotations
 from agents.base.contracts import BaseAgent
-from agent_host.application.session_store import InMemoryTTLSessionStore
+from agent_host.application.session_store import build_session_store_from_env
 from agent_host.infrastructure.fastapi_host import create_agent_app
 
 def build_agent_http_host(
@@ -10,7 +10,7 @@ def build_agent_http_host(
     agent_base_url: str | None = None,
     heartbeat_interval_s: int = 10,
 ):
-    session_store = InMemoryTTLSessionStore(ttl_s=1800)
+    session_store = build_session_store_from_env()
     return create_agent_app(
         agent=agent,
         session_store=session_store,

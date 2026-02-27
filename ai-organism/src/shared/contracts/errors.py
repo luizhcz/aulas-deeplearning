@@ -1,11 +1,10 @@
-class DomainError(Exception):
-    pass
+from __future__ import annotations
+from pydantic import BaseModel
+from typing import Any, Dict, Optional
 
-class ValidationDomainError(DomainError):
-    pass
-
-class RegistryError(DomainError):
-    pass
-
-class AgentCallError(DomainError):
-    pass
+class AppError(BaseModel):
+    code: str
+    message: str
+    details: Dict[str, Any] = {}
+    retryable: bool = False
+    cause: Optional[str] = None

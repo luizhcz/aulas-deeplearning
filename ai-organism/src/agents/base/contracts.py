@@ -1,8 +1,9 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import List, Type
+from typing import Any, List, Optional, Type
 from pydantic import BaseModel
+
+from shared.contracts.http import AgentContext
 
 @dataclass(frozen=True)
 class AgentSpec:
@@ -11,13 +12,12 @@ class AgentSpec:
     description: str
     input_model: Type[BaseModel]
     output_model: Type[BaseModel]
-    timeout_s: float = 6.0
-    tags: List[str] | None = None
+    timeout_s: float = 10.0
+    tags: Optional[List[str]] = None
 
-class BaseAgent(ABC):
-    @classmethod
-    @abstractmethod
-    def spec(cls) -> AgentSpec: ...
+class BaseAgent:
+    def spec(self) -> AgentSpec:
+        raise NotImplementedError
 
-    @abstractmethod
-    async def run(self, inp: BaseModel, ctx: "AgentContext") -> BaseModel: ...
+    async def run(self, inp: BaseModel, ctx: AgentContext) -> Any:
+        raise NotImplementedError

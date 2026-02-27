@@ -45,7 +45,6 @@ class OrderPlacementAgent(StructuredAgent):
         return [place_order]
 
     def user_message(self, inp: OrderPlacementInput, ctx: AgentContext) -> str:
-        print("DEBUG user_message CALLED", inp, ctx.session_id)
         return (
             "Use a ferramenta place_order com os parâmetros fornecidos.\n"
             f"side={inp.side}\nasset={inp.asset}\nquantity={inp.quantity}\nprice={inp.price}"
